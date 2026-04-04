@@ -6,6 +6,51 @@ A Spring Boot backend for a food delivery application with secure authentication
 
 ## 📅 Development Log
 
+### **April 4, 2026**
+
+#### ✅ Forgot Password Feature
+
+**Password Reset Flow**
+- Forgot password endpoint sends OTP to registered email
+- OTP verification with 5-minute expiry
+- Password reset with OTP validation
+- BCrypt password hashing for new passwords
+
+**Endpoints:**
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/api/auth/forgot-password` | Send password reset OTP |
+| `POST` | `/api/auth/reset-password` | Reset password with OTP |
+
+**Frontend Integration**
+- Forgot password link on login form
+- Step 1: Enter email → sends OTP
+- Step 2: Enter OTP + new password → resets password
+- Success redirects to login
+
+---
+
+#### ✅ Restaurant Dashboard (Full Functionality)
+
+**Profile Management**
+- View restaurant profile (name, address, cuisine, owner info)
+- Edit restaurant profile (name, address, cuisine type)
+- Toggle open/closed status
+
+**Menu Management**
+- View all menu items grouped by category
+- Add new menu items (name, description, price, category)
+- Edit existing menu items
+- Delete menu items
+- Toggle item availability (mark as sold out)
+
+**API Integration**
+- Connected to backend REST APIs
+- Real-time data fetching
+- Error handling and loading states
+
+---
+
 ### **April 3, 2026**
 
 #### ✅ Authentication System Complete
@@ -138,6 +183,138 @@ A Spring Boot backend for a food delivery application with secure authentication
 
 ---
 
+## 📋 API Reference
+
+### Authentication
+| Method | Endpoint | Body |
+|--------|----------|------|
+| POST | `/api/auth/register/customer` | `{email, password, fullName, phone}` |
+| POST | `/api/auth/register/restaurant` | `{email, password, fullName, phone, restaurantName, address, cuisineType}` |
+| POST | `/api/auth/register/agent` | `{email, password, fullName, phone, vehicleNumber, address}` |
+| POST | `/api/auth/login` | `{email, password}` |
+
+### OTP Verification
+| Method | Endpoint | Body |
+|--------|----------|------|
+| POST | `/api/otp/send` | `{email}` |
+| POST | `/api/otp/verify` | `{email, otpCode}` |
+
+### Password Reset
+| Method | Endpoint | Body |
+|--------|----------|------|
+| POST | `/api/auth/forgot-password` | `{email}` |
+| POST | `/api/auth/reset-password` | `{email, otpCode, newPassword}` |
+
+### OAuth2
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/oauth2/authorization/google` | Start Google login |
+
+### Restaurant Dashboard (Protected - RESTAURANT_OWNER only)
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/restaurant/profile` | Get restaurant profile |
+| PUT | `/api/restaurant/profile` | Update restaurant profile |
+| PATCH | `/api/restaurant/profile/toggle-status` | Toggle open/closed |
+| POST | `/api/restaurant/menu` | Add menu item |
+| GET | `/api/restaurant/menu` | Get all menu items |
+| GET | `/api/restaurant/menu/category/{category}` | Get items by category |
+| PUT | `/api/restaurant/menu/{id}` | Update menu item |
+| DELETE | `/api/restaurant/menu/{id}` | Delete menu item |
+| PATCH | `/api/restaurant/menu/{id}/toggle-availability` | Toggle availability |
+
+### Public Endpoints (Customer Browsing)
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/restaurants` | List all restaurants |
+| GET | `/api/restaurants?city=Bangalore` | Filter by city |
+| GET | `/api/restaurants?cuisine=Italian` | Filter by cuisine |
+| GET | `/api/restaurants?city=X&openOnly=true` | Only open restaurants |
+| GET | `/api/restaurants/{id}` | Restaurant details + menu |
+| GET | `/api/restaurant/{restaurantId}/menu` | Menu only |
+
+---
+
+*Last updated: April 4, 2026 - Added comprehensive unit tests for restaurant controller endpoints*
+
+---
+
+### **April 4, 2026**
+
+#### ✅ Restaurant Dashboard Module
+
+**Restaurant Profile Management**
+- Get restaurant profile endpoint (`GET /api/restaurant/profile`)
+- Update restaurant profile endpoint (`PUT /api/restaurant/profile`)
+- Toggle open/closed status (`PATCH /api/restaurant/profile/toggle-status`)
+- Profile includes owner details from linked User entity
+
+**Menu Management (Full CRUD)**
+- Add menu item (`POST /api/restaurant/menu`)
+- Get all menu items for owner (`GET /api/restaurant/menu`)
+- Get menu items by category (`GET /api/restaurant/menu/category/{category}`)
+- Update menu item (`PUT /api/restaurant/menu/{id}`)
+- Delete menu item (`DELETE /api/restaurant/menu/{id}`)
+- Toggle item availability (`PATCH /api/restaurant/menu/{id}/toggle-availability`)
+
+**Public Menu Access**
+- List restaurants by city (`GET /api/restaurants?city=Bangalore`)
+- Filter by cuisine type (`GET /api/restaurants?cuisine=Italian`)
+- Filter open restaurants only (`GET /api/restaurants?city=X&openOnly=true`)
+- Get restaurant details with menu (`GET /api/restaurants/{id}`)
+- Only shows approved restaurants and available items to customers
+
+**New Components:**
+- `MenuItem` entity with restaurant relationship (Many-to-One)
+- `MenuItemRepository` with custom query methods
+- `PublicRestaurantService` for customer browsing
+- `PublicRestaurantController` for public endpoints
+- `RestaurantListingResponse` DTO for list view
+- `RestaurantDetailResponse` DTO for detail view
+- `RestaurantProfileService` for profile operations
+- `MenuService` for menu CRUD operations
+- `RestaurantProfileController` for profile endpoints
+- `MenuController` for menu endpoints
+
+**Security Updates:**
+- Added `RESTAURANT_OWNER` role restriction for `/api/restaurant/**` endpoints
+- Public menu endpoint excluded from authentication
+
+---
+
+#### ✅ Restaurant Controller Unit Tests
+
+**Comprehensive Test Coverage**
+- `MenuControllerTest` - 10 test methods covering all menu endpoints
+- `RestaurantProfileControllerTest` - 8 test methods for profile management
+- `PublicRestaurantControllerTest` - 13 test methods for customer browsing
+
+**Test Features:**
+- Mockito-based unit tests using `@ExtendWith(MockitoExtension.class)`
+- Complete endpoint coverage with edge cases and error scenarios
+- Service layer mocking with proper verification of method calls
+- AssertJ assertions for readable and maintainable tests
+- Exception handling tests for robust error management
+
+**Test Categories:**
+- **Success scenarios**: All CRUD operations work correctly
+- **Parameter validation**: URL parameters and request bodies handled properly
+- **Authentication logic**: UserDetails extraction and username verification
+- **Error handling**: Service exceptions handled gracefully
+- **Edge cases**: Empty results, partial updates, null values
+
+**Maven Updates:**
+- Fixed test dependencies in `pom.xml`
+- Updated from deprecated test starters to `spring-boot-starter-test`
+- Added proper Spring Security test support
+
+**Run tests:**
+```bash
+./mvnw test -Dtest="MenuControllerTest,RestaurantProfileControllerTest,PublicRestaurantControllerTest"
+```
+
+---
+
 ## 📁 Project Structure
 
 ```
@@ -155,32 +332,11 @@ src/main/java/com/app/quickbite/
 │   ├── entity/         # EmailOtp
 │   ├── repository/     # EmailOtpRepository
 │   └── service/        # OtpService, EmailService
+├── restaurant/
+│   ├── controller/     # RestaurantProfileController, MenuController
+│   ├── dto/            # MenuItemRequest, MenuItemResponse, ProfileDTOs
+│   ├── entity/         # MenuItem
+│   ├── repository/     # MenuItemRepository
+│   └── service/        # RestaurantProfileService, MenuService
 └── exception/          # GlobalExceptionHandler
 ```
-
----
-
-## 📋 API Reference
-
-### Authentication
-| Method | Endpoint | Body |
-|--------|----------|------|
-| POST | `/api/auth/register/customer` | `{email, password, fullName, phone}` |
-| POST | `/api/auth/register/restaurant` | `{email, password, fullName, phone, restaurantName, address, cuisineType}` |
-| POST | `/api/auth/register/agent` | `{email, password, fullName, phone, vehicleNumber, address}` |
-| POST | `/api/auth/login` | `{email, password}` |
-
-### OTP Verification
-| Method | Endpoint | Body |
-|--------|----------|------|
-| POST | `/api/otp/send` | `{email}` |
-| POST | `/api/otp/verify` | `{email, otpCode}` |
-
-### OAuth2
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/oauth2/authorization/google` | Start Google login |
-
----
-
-*Last updated: April 3, 2026*
