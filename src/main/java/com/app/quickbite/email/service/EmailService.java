@@ -50,6 +50,29 @@ public class EmailService {
     }
     
     /**
+     * Send password reset OTP email (async)
+     */
+    @Async
+    public void sendPasswordResetEmail(String toEmail, String otpCode, String userName) {
+        logger.info("Sending password reset email to: {}", toEmail);
+        
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(fromAddress);
+            message.setTo(toEmail);
+            message.setSubject("QuickBite - Password Reset Code");
+            message.setText(buildPasswordResetEmailContent(userName, otpCode));
+            
+            mailSender.send(message);
+            logger.info("Password reset email sent successfully to: {}", toEmail);
+            
+        } catch (Exception e) {
+            logger.error("Failed to send password reset email to {}: {}", toEmail, e.getMessage());
+            throw new RuntimeException("Failed to send password reset email", e);
+        }
+    }
+    
+    /**
      * Build email content for OTP
      */
     private String buildOtpEmailContent(String userName, String otpCode) {
@@ -65,6 +88,32 @@ public class EmailService {
             This code will expire in 5 minutes.
             
             If you didn't request this verification, please ignore this email.
+            
+            Best regards,
+            The QuickBite Team
+            
+            ---
+            This is an automated message. Please do not reply to this email.
+            """, userName, otpCode);
+    }
+    
+    /**
+     * Build email content for password reset
+     */
+    private String buildPasswordResetEmailContent(String userName, String otpCode) {
+        return String.format("""
+            Hi %s,
+            
+            We received a request to reset your QuickBite password. 🔐
+            
+            Your password reset code is:
+            
+            %s
+            
+            This code will expire in 5 minutes.
+            
+            If you didn't request a password reset, please ignore this email.
+            Your password will remain unchanged.
             
             Best regards,
             The QuickBite Team
