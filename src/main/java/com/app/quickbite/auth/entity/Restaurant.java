@@ -60,10 +60,13 @@ public class Restaurant {
     
     /**
      * Admin approval flag
-     * Default is false - restaurants must be approved by admin before they can start accepting orders
+     * Default is true - restaurants are approved by default for MVP
      * 
-     * @Column(columnDefinition = "boolean default false") ensures the DB column has a default value
+     * @Column(columnDefinition = "boolean default true") ensures the DB column has a default value
      */
-    @Column(nullable = false, columnDefinition = "boolean default false")
-    private Boolean isApproved = false;
+    @Column(nullable = false, columnDefinition = "boolean default true")
+    private Boolean isApproved = true;
+
+    @Column(nullable=false, columnDefinition = "boolean default true")
+    private Boolean isOpen = true;
 }

@@ -8,6 +8,8 @@ import com.app.quickbite.auth.repository.DeliveryAgentRepository;
 import com.app.quickbite.auth.repository.RestaurantRepository;
 import com.app.quickbite.auth.repository.UserRepository;
 import com.app.quickbite.auth.security.JwtUtil;
+import com.app.quickbite.email.service.EmailService;
+import com.app.quickbite.email.service.OtpService;
 import com.app.quickbite.exception.UserAlreadyExistsException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,12 +21,16 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Map;
+import java.util.HashMap;
+
 /**
  * AUTH SERVICE - Business Logic for Authentication
  * 
  * This service handles all authentication-related operations:
  * - User registration (customer, restaurant, delivery agent)
  * - User login (authentication and JWT token generation)
+ * - Password reset functionality
  * 
  * @Service: Marks this as a Spring service component (business logic layer)
  */
@@ -50,6 +56,12 @@ public class AuthService {
     
     @Autowired
     private AuthenticationManager authenticationManager; // For authenticating login credentials
+    
+    @Autowired
+    private OtpService otpService; // For generating and verifying OTPs
+    
+    @Autowired
+    private EmailService emailService; // For sending emails
     
     /**
      * REGISTER CUSTOMER - Create a new customer account
@@ -270,5 +282,86 @@ public class AuthService {
             logger.error("Login failed for email: {} - {}", request.getEmail(), e.getMessage());
             throw e; // Re-throw to be handled by GlobalExceptionHandler
         }
+    }
+    
+    /**
+     * FORGOT PASSWORD - Send OTP to user's email for password reset
+     * 
+     * THE FLOW:
+     * 1. Check if user with email exists
+     * 2. Generate OTP
+     * 3. Send password reset email with OTP
+     * 4. Return success message
+     * 
+     * @param request ForgotPasswordRequest containing email
+     * @return Map with success message
+     * @throws RuntimeException if user not found
+     */
+    public Map<String, String> forgotPassword(ForgotPasswordRequest request) {
+        logger.info("Forgot password request for email: {}", request.getEmail());
+        
+        // Check if user exists
+        User user = userRepository.findByEmail(request.getEmail())
+            .orElseThrow(() -> {
+                logger.warn("Forgot password failed - user not found: {}", request.getEmail());
+                return new RuntimeException("No account found with this email address");
+            });
+        
+        // Generate OTP
+        String otpCode = otpService.generateOtp(request.getEmail());
+        
+        // Send password reset email
+        emailService.sendPasswordResetEmail(request.getEmail(), otpCode, user.getFullName());
+        
+        logger.info("Password reset OTP sent to: {}", request.getEmail());
+        
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Password reset code sent to your email");
+        response.put("email", request.getEmail());
+        return response;
+    }
+    
+    /**
+     * RESET PASSWORD - Verify OTP and update password
+     * 
+     * THE FLOW:
+     * 1. Verify OTP is valid
+     * 2. Find user by email
+     * 3. Hash new password
+     * 4. Update user's password
+     * 5. Return success message
+     * 
+     * @param request ResetPasswordRequest containing email, otpCode, newPassword
+     * @return Map with success message
+     * @throws RuntimeException if OTP invalid or user not found
+     */
+    @Transactional
+    public Map<String, String> resetPassword(ResetPasswordRequest request) {
+        logger.info("Password reset attempt for email: {}", request.getEmail());
+        
+        // Verify OTP
+        boolean isValid = otpService.verifyOtp(request.getEmail(), request.getOtpCode());
+        
+        if (!isValid) {
+            logger.warn("Password reset failed - invalid OTP for: {}", request.getEmail());
+            throw new RuntimeException("Invalid or expired OTP code");
+        }
+        
+        // Find user
+        User user = userRepository.findByEmail(request.getEmail())
+            .orElseThrow(() -> {
+                logger.warn("Password reset failed - user not found: {}", request.getEmail());
+                return new RuntimeException("User not found");
+            });
+        
+        // Update password
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+        
+        logger.info("Password reset successful for: {}", request.getEmail());
+        
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Password reset successful. You can now login with your new password.");
+        return response;
     }
 }

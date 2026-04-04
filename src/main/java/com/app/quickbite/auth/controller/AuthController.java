@@ -326,4 +326,95 @@ public class AuthController {
         AuthResponse response = authService.login(request);
         return ResponseEntity.ok(response); // HTTP 200 OK
     }
+    
+    /**
+     * FORGOT PASSWORD ENDPOINT
+     * 
+     * Endpoint: POST /api/auth/forgot-password
+     * 
+     * Request Body (JSON):
+     * {
+     *   "email": "user@example.com"
+     * }
+     * 
+     * Response (JSON) - Success (200 OK):
+     * {
+     *   "message": "Password reset code sent to your email",
+     *   "email": "user@example.com"
+     * }
+     */
+    @Operation(
+        summary = "Request password reset",
+        description = """
+            Initiate password reset by sending OTP to user's email.
+            The OTP will be valid for 5 minutes.
+            """,
+        tags = {"Authentication"}
+    )
+    @ApiResponses(value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "Password reset OTP sent successfully",
+            content = @Content(mediaType = "application/json")
+        ),
+        @ApiResponse(
+            responseCode = "404",
+            description = "No account found with this email",
+            content = @Content(mediaType = "application/json")
+        )
+    })
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(
+            @Parameter(description = "Email address for password reset", required = true)
+            @RequestBody ForgotPasswordRequest request) {
+        logger.info("Forgot password request received for email: {}", request.getEmail());
+        var response = authService.forgotPassword(request);
+        return ResponseEntity.ok(response);
+    }
+    
+    /**
+     * RESET PASSWORD ENDPOINT
+     * 
+     * Endpoint: POST /api/auth/reset-password
+     * 
+     * Request Body (JSON):
+     * {
+     *   "email": "user@example.com",
+     *   "otpCode": "123456",
+     *   "newPassword": "newSecurePassword123"
+     * }
+     * 
+     * Response (JSON) - Success (200 OK):
+     * {
+     *   "message": "Password reset successful. You can now login with your new password."
+     * }
+     */
+    @Operation(
+        summary = "Reset password with OTP",
+        description = """
+            Reset user password after verifying the OTP sent to their email.
+            Requires valid OTP and new password.
+            """,
+        tags = {"Authentication"}
+    )
+    @ApiResponses(value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "Password reset successful",
+            content = @Content(mediaType = "application/json")
+        ),
+        @ApiResponse(
+            responseCode = "400",
+            description = "Invalid or expired OTP",
+            content = @Content(mediaType = "application/json")
+        )
+    })
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(
+            @Parameter(description = "OTP verification and new password", required = true)
+            @RequestBody ResetPasswordRequest request) {
+        logger.info("Password reset request received for email: {}", request.getEmail());
+        var response = authService.resetPassword(request);
+        return ResponseEntity.ok(response);
+    }
 }
