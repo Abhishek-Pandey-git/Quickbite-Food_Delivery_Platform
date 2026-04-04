@@ -112,6 +112,52 @@ A Spring Boot backend for a food delivery application with secure authentication
 
 ---
 
+
+# Update Log - April 4, 2026
+
+## Features Completed
+- Implemented **Forgot Password** functionality
+- Added OTP based password reset with **5-minute expiry**
+- Integrated **BCrypt hashing** for new passwords
+- Added frontend forgot password flow with redirect to login
+
+## Restaurant Dashboard
+- Completed **restaurant profile management**
+- View and update restaurant details
+- Toggle restaurant **open / closed status**
+- Added full **menu CRUD operations**
+- Add, update, delete menu items
+- Toggle item availability / sold out
+- Category based menu grouping
+
+## Public Customer Browsing
+- List all restaurants
+- Filter by **city**
+- Filter by **cuisine**
+- Show **open restaurants only**
+- Restaurant detail view with menu items
+
+## Testing
+- Added comprehensive **controller unit tests**
+- MenuControllerTest
+- RestaurantProfileControllerTest
+- PublicRestaurantControllerTest
+- Covered success, validation, edge cases, and exceptions
+
+## Security & Auth
+- Added role restriction for `RESTAURANT_OWNER`
+- Public browsing endpoints excluded from authentication
+- Google OAuth2 login flow completed
+- JWT generation after successful OAuth login
+
+## OTP & Email
+- Implemented **email OTP verification**
+- Added retry limit and rate limiting
+- Async Gmail SMTP email sending
+---
+---
+
+
 ## 🔧 Tech Stack
 
 - **Java 21** + **Spring Boot 4.0.5**
