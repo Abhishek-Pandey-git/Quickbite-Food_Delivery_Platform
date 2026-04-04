@@ -48,7 +48,6 @@ class MenuControllerTest {
                 "Classic pizza with fresh mozzarella and basil",
                 new BigDecimal("12.99"),
                 "Pizza",
-                true,
                 true
         );
 
@@ -59,7 +58,6 @@ class MenuControllerTest {
                 "Classic pizza with fresh mozzarella and basil",
                 new BigDecimal("12.99"),
                 "Pizza",
-                true,
                 true,
                 1L
         );
@@ -88,7 +86,7 @@ class MenuControllerTest {
         assertThat(response.getBody().getName()).isEqualTo("Margherita Pizza");
         assertThat(response.getBody().getPrice()).isEqualTo(new BigDecimal("12.99"));
         assertThat(response.getBody().getCategory()).isEqualTo("Pizza");
-        assertThat(response.getBody().getIsVegetarian()).isTrue();
+        assertThat(response.getBody().getIsAvailable()).isTrue();
 
         verify(menuService).addMenuItem("restaurant@test.com", sampleMenuItemRequest);
     }
@@ -105,7 +103,6 @@ class MenuControllerTest {
                         "Pizza with pepperoni and cheese",
                         new BigDecimal("14.99"),
                         "Pizza",
-                        false,
                         true,
                         1L
                 )
@@ -153,7 +150,6 @@ class MenuControllerTest {
                 "Updated description",
                 new BigDecimal("15.99"),
                 "Pizza",
-                true,
                 true
         );
 
@@ -163,7 +159,6 @@ class MenuControllerTest {
                 "Updated description",
                 new BigDecimal("15.99"),
                 "Pizza",
-                true,
                 true,
                 1L
         );
@@ -210,7 +205,6 @@ class MenuControllerTest {
                 "Classic pizza with fresh mozzarella and basil",
                 new BigDecimal("12.99"),
                 "Pizza",
-                true,
                 false, // Toggled to unavailable
                 1L
         );

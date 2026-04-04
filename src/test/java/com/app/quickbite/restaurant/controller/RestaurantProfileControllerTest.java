@@ -37,29 +37,26 @@ class RestaurantProfileControllerTest {
 
     @BeforeEach
     void setUp() {
-        // Sample profile response
-        sampleProfileResponse = RestaurantProfileResponse.builder()
-                .id(1L)
-                .name("Test Restaurant")
-                .description("A great place to eat")
-                .address("123 Main St")
-                .city("Bangalore")
-                .cuisineType("Italian")
-                .phoneNumber("+91-9876543210")
-                .isOpen(true)
-                .isApproved(true)
-                .rating(4.5)
-                .build();
+        // Sample profile response using constructor
+        sampleProfileResponse = new RestaurantProfileResponse(
+                1L,
+                "Test Restaurant",
+                "123 Main St",
+                "Italian",
+                true,
+                true,
+                "John Doe",
+                "john@test.com",
+                "+91-9876543210"
+        );
 
         // Sample update request
-        sampleUpdateRequest = RestaurantProfileUpdateRequest.builder()
-                .name("Updated Restaurant")
-                .description("Updated description")
-                .address("456 New St")
-                .city("Mumbai")
-                .cuisineType("Mexican")
-                .phoneNumber("+91-9876543211")
-                .build();
+        sampleUpdateRequest = new RestaurantProfileUpdateRequest(
+                "Updated Restaurant",
+                "456 New St",
+                "Mexican",
+                false
+        );
 
         // Mock authenticated user
         mockUserDetails = User.builder()
@@ -82,11 +79,9 @@ class RestaurantProfileControllerTest {
         // Assert
         assertThat(response.getStatusCode().value()).isEqualTo(200);
         assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getName()).isEqualTo("Test Restaurant");
-        assertThat(response.getBody().getCity()).isEqualTo("Bangalore");
+        assertThat(response.getBody().getRestaurantName()).isEqualTo("Test Restaurant");
         assertThat(response.getBody().getCuisineType()).isEqualTo("Italian");
         assertThat(response.getBody().getIsOpen()).isTrue();
-        assertThat(response.getBody().getRating()).isEqualTo(4.5);
 
         verify(restaurantProfileService).getProfile("restaurant@test.com");
     }
@@ -95,18 +90,17 @@ class RestaurantProfileControllerTest {
     @DisplayName("Should update restaurant profile successfully")
     void shouldUpdateRestaurantProfileSuccessfully() {
         // Arrange
-        RestaurantProfileResponse updatedResponse = RestaurantProfileResponse.builder()
-                .id(1L)
-                .name("Updated Restaurant")
-                .description("Updated description")
-                .address("456 New St")
-                .city("Mumbai")
-                .cuisineType("Mexican")
-                .phoneNumber("+91-9876543211")
-                .isOpen(true)
-                .isApproved(true)
-                .rating(4.5)
-                .build();
+        RestaurantProfileResponse updatedResponse = new RestaurantProfileResponse(
+                1L,
+                "Updated Restaurant",
+                "456 New St",
+                "Mexican",
+                false,
+                true,
+                "John Doe",
+                "john@test.com",
+                "+91-9876543210"
+        );
 
         when(restaurantProfileService.updateProfile(anyString(), any(RestaurantProfileUpdateRequest.class)))
                 .thenReturn(updatedResponse);
@@ -117,9 +111,9 @@ class RestaurantProfileControllerTest {
         // Assert
         assertThat(response.getStatusCode().value()).isEqualTo(200);
         assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getName()).isEqualTo("Updated Restaurant");
-        assertThat(response.getBody().getCity()).isEqualTo("Mumbai");
+        assertThat(response.getBody().getRestaurantName()).isEqualTo("Updated Restaurant");
         assertThat(response.getBody().getCuisineType()).isEqualTo("Mexican");
+        assertThat(response.getBody().getIsOpen()).isFalse();
 
         verify(restaurantProfileService).updateProfile("restaurant@test.com", sampleUpdateRequest);
     }
@@ -128,18 +122,17 @@ class RestaurantProfileControllerTest {
     @DisplayName("Should toggle open status successfully")
     void shouldToggleOpenStatusSuccessfully() {
         // Arrange
-        RestaurantProfileResponse toggledResponse = RestaurantProfileResponse.builder()
-                .id(1L)
-                .name("Test Restaurant")
-                .description("A great place to eat")
-                .address("123 Main St")
-                .city("Bangalore")
-                .cuisineType("Italian")
-                .phoneNumber("+91-9876543210")
-                .isOpen(false) // Toggled to closed
-                .isApproved(true)
-                .rating(4.5)
-                .build();
+        RestaurantProfileResponse toggledResponse = new RestaurantProfileResponse(
+                1L,
+                "Test Restaurant",
+                "123 Main St",
+                "Italian",
+                false, // Toggled to closed
+                true,
+                "John Doe",
+                "john@test.com",
+                "+91-9876543210"
+        );
 
         when(restaurantProfileService.toggleOpenStatus(anyString()))
                 .thenReturn(toggledResponse);
@@ -158,24 +151,25 @@ class RestaurantProfileControllerTest {
     @Test
     @DisplayName("Should handle partial update requests")
     void shouldHandlePartialUpdateRequests() {
-        // Arrange - Only updating name and city
-        RestaurantProfileUpdateRequest partialRequest = RestaurantProfileUpdateRequest.builder()
-                .name("Partially Updated Restaurant")
-                .city("Delhi")
-                .build();
+        // Arrange - Only updating name
+        RestaurantProfileUpdateRequest partialRequest = new RestaurantProfileUpdateRequest(
+                "Partially Updated Restaurant",
+                null,
+                null,
+                null
+        );
 
-        RestaurantProfileResponse updatedResponse = RestaurantProfileResponse.builder()
-                .id(1L)
-                .name("Partially Updated Restaurant")
-                .description("A great place to eat") // Original description
-                .address("123 Main St") // Original address
-                .city("Delhi") // Updated
-                .cuisineType("Italian") // Original cuisine
-                .phoneNumber("+91-9876543210") // Original phone
-                .isOpen(true)
-                .isApproved(true)
-                .rating(4.5)
-                .build();
+        RestaurantProfileResponse updatedResponse = new RestaurantProfileResponse(
+                1L,
+                "Partially Updated Restaurant",
+                "123 Main St", // Original address
+                "Italian", // Original cuisine
+                true,
+                true,
+                "John Doe",
+                "john@test.com",
+                "+91-9876543210"
+        );
 
         when(restaurantProfileService.updateProfile(anyString(), any(RestaurantProfileUpdateRequest.class)))
                 .thenReturn(updatedResponse);
@@ -186,9 +180,8 @@ class RestaurantProfileControllerTest {
         // Assert
         assertThat(response.getStatusCode().value()).isEqualTo(200);
         assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getName()).isEqualTo("Partially Updated Restaurant");
-        assertThat(response.getBody().getCity()).isEqualTo("Delhi");
-        assertThat(response.getBody().getDescription()).isEqualTo("A great place to eat");
+        assertThat(response.getBody().getRestaurantName()).isEqualTo("Partially Updated Restaurant");
+        assertThat(response.getBody().getAddress()).isEqualTo("123 Main St");
 
         verify(restaurantProfileService).updateProfile("restaurant@test.com", partialRequest);
     }
@@ -197,7 +190,7 @@ class RestaurantProfileControllerTest {
     @DisplayName("Should handle empty update requests")
     void shouldHandleEmptyUpdateRequests() {
         // Arrange - Empty update request (should keep original values)
-        RestaurantProfileUpdateRequest emptyRequest = RestaurantProfileUpdateRequest.builder().build();
+        RestaurantProfileUpdateRequest emptyRequest = new RestaurantProfileUpdateRequest(null, null, null, null);
 
         when(restaurantProfileService.updateProfile(anyString(), any(RestaurantProfileUpdateRequest.class)))
                 .thenReturn(sampleProfileResponse);
@@ -208,7 +201,7 @@ class RestaurantProfileControllerTest {
         // Assert
         assertThat(response.getStatusCode().value()).isEqualTo(200);
         assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getName()).isEqualTo("Test Restaurant");
+        assertThat(response.getBody().getRestaurantName()).isEqualTo("Test Restaurant");
 
         verify(restaurantProfileService).updateProfile("restaurant@test.com", emptyRequest);
     }
@@ -239,28 +232,5 @@ class RestaurantProfileControllerTest {
 
         // Assert
         verify(restaurantProfileService).getProfile("restaurant@test.com");
-    }
-
-    @Test
-    @DisplayName("Should pass null fields correctly in update request")
-    void shouldPassNullFieldsCorrectlyInUpdateRequest() {
-        // Arrange - Update request with some null fields
-        RestaurantProfileUpdateRequest requestWithNulls = RestaurantProfileUpdateRequest.builder()
-                .name("New Name")
-                .description(null)
-                .address(null)
-                .city("New City")
-                .cuisineType(null)
-                .phoneNumber(null)
-                .build();
-
-        when(restaurantProfileService.updateProfile(anyString(), eq(requestWithNulls)))
-                .thenReturn(sampleProfileResponse);
-
-        // Act
-        restaurantProfileController.updateProfile(mockUserDetails, requestWithNulls);
-
-        // Assert
-        verify(restaurantProfileService).updateProfile("restaurant@test.com", requestWithNulls);
     }
 }
