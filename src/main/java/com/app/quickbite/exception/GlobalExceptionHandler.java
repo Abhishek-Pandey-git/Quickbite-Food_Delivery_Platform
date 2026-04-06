@@ -1,5 +1,6 @@
 package com.app.quickbite.exception;
 
+import jakarta.persistence.EntityNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -66,6 +67,24 @@ public class GlobalExceptionHandler {
             HttpStatus.UNAUTHORIZED, 
             "Authentication Failed", 
             "Invalid email or password"
+        );
+    }
+    
+    /**
+     * Handle EntityNotFoundException
+     * 
+     * This is thrown when a requested entity does not exist in the database.
+     * 
+     * @param ex The exception that was thrown
+     * @return ResponseEntity with error details and HTTP 404 NOT FOUND status
+     */
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleEntityNotFound(EntityNotFoundException ex) {
+        logger.warn("Entity not found: {}", ex.getMessage());
+        return buildErrorResponse(
+            HttpStatus.NOT_FOUND,
+            "Not Found",
+            ex.getMessage()
         );
     }
     

@@ -67,6 +67,7 @@ public class SecurityConfig {
                 .requestMatchers("/v3/api-docs/**").permitAll()
                 .requestMatchers("/swagger-resources/**").permitAll()
                 .requestMatchers("/api/restaurant/**").hasRole("RESTAURANT_OWNER")  // Protected: Restaurant management
+                .requestMatchers("/api/orders/restaurant").hasRole("RESTAURANT_OWNER")  // Protected: Restaurant incoming orders
                 .anyRequest().authenticated()
             )
             

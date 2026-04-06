@@ -53,6 +53,9 @@ public class User {
      */
     @Column(nullable = false)
     private String phoneNumber;
+
+    @Column(name = "default_delivery_address")
+    private String defaultDeliveryAddress;
     
     /**
      * User's role in the system
